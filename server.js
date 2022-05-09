@@ -5,7 +5,7 @@ var fs = require('fs');
 var url = require("url")
 
 async function gateWayPage(req, res) {
-	var fname = "../" + url.parse(req.url).pathname;
+	var fname = "./" + url.parse(req.url).pathname;
 	console.log(fname)
 
 	fs.readFile(fname, async function (err, data) {
