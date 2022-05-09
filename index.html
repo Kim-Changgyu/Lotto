@@ -2,95 +2,278 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title></title>
-    <script>
-        var addr = "0x88409F9B0259aBb6e3976CC9f21ecD9E5B1cacb1";
-        var abi = [
-            {
-                "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "inputs": [
+    <title>Secret Contract</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+
+    <!-- Javascript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src='web3.min.js'></script>
+    <script type="text/javascript">
+        var accounts;
+        var contractInstance;
+        var A;
+        var B;
+        var content;
+        var date;
+        var topDiv;
+
+        window.addEventListener('load', secretContract);
+
+        async function secretContract() {
+            if (window.ethereum) {
+                window.web3 = new Web3(window.ethereum);
+                window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                var address = "0xFD3745bc11FD580975c43Df9fC807c950d9Fe055";
+                var abi = [
                     {
-                        "internalType": "address",
-                        "name": "_target",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "_content",
-                        "type": "string"
-                    }
-                ],
-                "name": "addContract",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "getBalance",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "getContract",
-                "outputs": [
-                    {
-                        "components": [
+                        "inputs": [
                             {
                                 "internalType": "address",
-                                "name": "author",
+                                "name": "_A",
                                 "type": "address"
                             },
                             {
                                 "internalType": "address",
-                                "name": "target",
+                                "name": "_B",
                                 "type": "address"
                             },
                             {
                                 "internalType": "string",
-                                "name": "content",
+                                "name": "_content",
+                                "type": "string"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "_date",
                                 "type": "string"
                             }
                         ],
-                        "internalType": "struct SecretContract.Instance[]",
-                        "name": "",
-                        "type": "tuple[]"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "owner",
-                "outputs": [
+                        "name": "addContract",
+                        "outputs": [],
+                        "stateMutability": "nonpayable",
+                        "type": "function"
+                    },
                     {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
+                        "inputs": [],
+                        "stateMutability": "nonpayable",
+                        "type": "constructor"
+                    },
+                    {
+                        "inputs": [],
+                        "name": "getBalance",
+                        "outputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                            }
+                        ],
+                        "stateMutability": "view",
+                        "type": "function"
+                    },
+                    {
+                        "inputs": [],
+                        "name": "getContract",
+                        "outputs": [
+                            {
+                                "internalType": "address[]",
+                                "name": "",
+                                "type": "address[]"
+                            },
+                            {
+                                "internalType": "address[]",
+                                "name": "",
+                                "type": "address[]"
+                            },
+                            {
+                                "internalType": "string[]",
+                                "name": "",
+                                "type": "string[]"
+                            },
+                            {
+                                "internalType": "string[]",
+                                "name": "",
+                                "type": "string[]"
+                            }
+                        ],
+                        "stateMutability": "view",
+                        "type": "function"
+                    },
+                    {
+                        "inputs": [],
+                        "name": "owner",
+                        "outputs": [
+                            {
+                                "internalType": "address",
+                                "name": "",
+                                "type": "address"
+                            }
+                        ],
+                        "stateMutability": "view",
+                        "type": "function"
                     }
-                ],
-                "stateMutability": "view",
-                "type": "function"
+                ];
+                contractInstance = await new window.web3.eth.Contract(abi, address); 
+            } else if (window.web3) {
+                window.web3 = new Web3(web3.currentProvider);
+            } else {
+                console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+                window.web3 = null
             }
-        ];
+            addEvtHandlers();
+        }
 
-        
+        function addEvtHandlers() {
+            let btn = document.getElementById("getBalance");
+            btn.addEventListener("click", getBalance);
+
+            btn = document.getElementById("getContract");
+            btn.addEventListener("click", getContract);
+            
+            btn = document.getElementById("addContract");
+            btn.addEventListener("click", addContract);
+
+            A = document.getElementById("A");
+            B = document.getElementById("B");
+            content = document.getElementById("content");
+            date = document.getElementById("date");
+            topDiv = document.getElementById("parent");
+        }
+
+        async function getBalance() {
+            if (contractInstance != null) {
+                try {
+                    const value = await contractInstance.methods[this.id]().call();
+                    alert("현재 스마트 컨트랙트의 잔액은 " + value + "입니다.");
+                } catch (e) {
+                    alert(e);
+                }
+            }
+        }
+
+        async function getContract() {
+            if (contractInstance != null) {
+                try {
+                    const value = await contractInstance.methods[this.id]().call();
+
+                    while (topDiv.hasChildNodes()) {
+                        topDiv.removeChild(topDiv.firstChild);
+                    }
+
+                    if (value[0].length == 0) {
+                        alert("현재 스마트 컨트랙트에 등록된 계약서가 없습니다.");
+                        return;
+                    }
+
+                    for(let i = 0; i < value[0].length; i++) {
+                        var a_Tag = document.createElement("a");
+                        a_Tag.setAttribute("href", "javascript:void(0);");
+                        a_Tag.setAttribute("class", "list-group-item list-group-item-action");
+                        
+                        var a_div_Tag = document.createElement("div");
+                        a_div_Tag.setAttribute("class", "d-flex w-100 justify-content-between");
+
+                        var a_div_h5_Tag = document.createElement("h5");
+                        a_div_h5_Tag.setAttribute("class", "mb-1");
+                        a_div_h5_Tag.innerHTML = value[0][i] + " & " + value[1][i];
+
+                        var a_div_small_Tag = document.createElement("small");
+                        a_div_small_Tag.setAttribute("class", "text-muted");
+                        a_div_small_Tag.innerHTML = value[3][i];
+
+                        a_div_Tag.appendChild(a_div_h5_Tag);
+                        a_div_Tag.appendChild(a_div_small_Tag);
+
+                        var a_hr_Tag = document.createElement("hr");
+                        a_hr_Tag.setAttribute("class", "my-1");
+
+                        var a_p_Tag = document.createElement("p");
+                        a_p_Tag.setAttribute("class", "mb-1");
+                        a_p_Tag.innerHTML = value[2][i];
+
+                        a_Tag.appendChild(a_div_Tag);
+                        a_Tag.appendChild(a_hr_Tag);
+                        a_Tag.appendChild(a_p_Tag);
+                
+                        topDiv.appendChild(a_Tag);
+                    }
+                } catch (e) {
+                    alert(e);
+                }
+            }
+        }
+
+        async function addContract() {
+            if (contractInstance != null) {
+                if (A.value == "" || B.value == "" || content.value == "" || date.value == "") {
+                    alert("주소 또는 내용을 입력해주세요.");
+                    return;
+                }
+                try {
+                    let addressA = web3.utils.toChecksumAddress(A.value);
+                    let addressB = web3.utils.toChecksumAddress(B.value);
+                    const value = await contractInstance.methods[this.id](addressA, addressB, content.value, date.value).send({from:accounts[0]});
+                    alert(value);
+                } catch (e) {
+                    alert(e);
+                }
+            }
+        }
+
     </script>
 </head>
 <body>
+    <div id="container">
+        <div class="jumbotron">
+            <div>
+                <h1 class="display-4">보안 계약서
+                    <button id="getBalance" type="button" class="btn btn-warning">스마트 컨트랙트 잔액 조회</button>
+                </h1>
+                <p class="lead">Team Name: 김창규 (20162347)</p>
+                <a class="btn btn-danger btn-lg" href="#" role="button">Youtube Demo Video</a>
+            </div>
 
+            <hr class="my-4">
+
+            <div>
+                <div class="input-group flex-nowrap">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="addon-wrapping"><strong>계약자 A</strong></span>
+                    </div>
+                    <input id="A" type="text" class="form-control" aria-describedby="addon-wrapping">
+                </div>
+                <div class="input-group flex-nowrap">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="addon-wrapping"><strong>계약자 B</strong></span>
+                    </div>
+                    <input id="B" type="text" class="form-control" aria-describedby="addon-wrapping">
+                </div>
+                <textarea id="content" class="form-control" rows="10"></textarea>
+                <div class="input-group flex-nowrap mt-1">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="addon-wrapping"><strong>날짜</strong></span>
+                    </div>
+                    <input id="date" type="text" class="form-control" aria-describedby="addon-wrapping">
+                </div>
+                <button id="addContract" type="button" class="btn btn-primary mx-auto d-block mt-2">계약서 등록</button>
+            </div>
+
+            <hr class="my-4">
+
+            <div>
+                <div class="card">
+                    <div class="card-body">
+                        <button id="getContract" type="button" class="btn btn-primary mx-auto d-block">계약서 조회</button>
+                        <hr>
+                        <div id="parent" class="list-group">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
