@@ -1,0 +1,23 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "스마트 컨트랙트와 Node JS를 활용한 웹서비스",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kim-Changgyu/Secret-Contract.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kim-Changgyu/Secret-Contract/issues"
+  },
+  "homepage": "https://github.com/Kim-Changgyu/Secret-Contract#readme",
+  "dependencies": {
+    "web3": "^1.7.3"
+  }
+}

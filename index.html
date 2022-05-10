@@ -10,14 +10,13 @@
 
     <!-- Javascript -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src='web3.min.js'></script>
+    <script src='node_modules/web3/dist/web3.min.js'></script>
     <script type="text/javascript">
         var accounts;
         var contractInstance;
         var A;
         var B;
         var content;
-        var date;
         var topDiv;
 
         window.addEventListener('load', secretContract);
@@ -26,7 +25,7 @@
             if (window.ethereum) {
                 window.web3 = new Web3(window.ethereum);
                 window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                var address = "0xFD3745bc11FD580975c43Df9fC807c950d9Fe055";
+                var address = "0x49EC3787c81C4a4B94Ed4fBC7ECB7196C19f36d1";
                 var abi = [
                     {
                         "inputs": [
@@ -139,7 +138,6 @@
             A = document.getElementById("A");
             B = document.getElementById("B");
             content = document.getElementById("content");
-            date = document.getElementById("date");
             topDiv = document.getElementById("parent");
         }
 
@@ -158,6 +156,7 @@
             if (contractInstance != null) {
                 try {
                     const value = await contractInstance.methods[this.id]().call();
+                    console.log(value);
 
                     while (topDiv.hasChildNodes()) {
                         topDiv.removeChild(topDiv.firstChild);
@@ -177,8 +176,7 @@
                         a_div_Tag.setAttribute("class", "d-flex w-100 justify-content-between");
 
                         var a_div_h5_Tag = document.createElement("h5");
-                        a_div_h5_Tag.setAttribute("class", "mb-1");
-                        a_div_h5_Tag.innerHTML = value[0][i] + " & " + value[1][i];
+                        a_div_h5_Tag.innerHTML = "";
 
                         var a_div_small_Tag = document.createElement("small");
                         a_div_small_Tag.setAttribute("class", "text-muted");
@@ -187,16 +185,21 @@
                         a_div_Tag.appendChild(a_div_h5_Tag);
                         a_div_Tag.appendChild(a_div_small_Tag);
 
-                        var a_hr_Tag = document.createElement("hr");
-                        a_hr_Tag.setAttribute("class", "my-1");
+                        var a_p1_Tag = document.createElement("p");
+                        a_p1_Tag.setAttribute("class", "mb-1 font-weight-bold");
+                        a_p1_Tag.innerHTML = "A : " + value[0][i];
+                        
+                        var a_p2_Tag = document.createElement("p");
+                        a_p2_Tag.setAttribute("class", "mb-1 font-weight-bold");
+                        a_p2_Tag.innerHTML = "B : " + value[1][i];
 
-                        var a_p_Tag = document.createElement("p");
-                        a_p_Tag.setAttribute("class", "mb-1");
-                        a_p_Tag.innerHTML = value[2][i];
+                        var a_small_Tag = document.createElement("small");
+                        a_small_Tag.innerHTML = value[2][i];
 
                         a_Tag.appendChild(a_div_Tag);
-                        a_Tag.appendChild(a_hr_Tag);
-                        a_Tag.appendChild(a_p_Tag);
+                        a_Tag.appendChild(a_p1_Tag);
+                        a_Tag.appendChild(a_p2_Tag);
+                        a_Tag.appendChild(a_small_Tag);
                 
                         topDiv.appendChild(a_Tag);
                     }
@@ -208,15 +211,22 @@
 
         async function addContract() {
             if (contractInstance != null) {
-                if (A.value == "" || B.value == "" || content.value == "" || date.value == "") {
+                if (A.value == "" || B.value == "" || content.value == "") {
                     alert("주소 또는 내용을 입력해주세요.");
                     return;
                 }
                 try {
+                    var raw_content = content.value.replaceAll(/(\n|\r\n)/g, "<br>");
+                    var now = new Date(+new Date() + 3240 * 10000).toISOString().replace("T", " ").replace(/\..*/, '');
                     let addressA = web3.utils.toChecksumAddress(A.value);
                     let addressB = web3.utils.toChecksumAddress(B.value);
-                    const value = await contractInstance.methods[this.id](addressA, addressB, content.value, date.value).send({from:accounts[0]});
-                    alert(value);
+                    const value = await contractInstance.methods[this.id](addressA, addressB, raw_content, now).send({from:accounts[0]});
+
+                    alert("계약서가 정상적으로 등록됐습니다.");
+                    
+                    A.value = "";
+                    B.value = "";
+                    content.value = "";
                 } catch (e) {
                     alert(e);
                 }
@@ -252,12 +262,6 @@
                     <input id="B" type="text" class="form-control" aria-describedby="addon-wrapping">
                 </div>
                 <textarea id="content" class="form-control" rows="10"></textarea>
-                <div class="input-group flex-nowrap mt-1">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text" id="addon-wrapping"><strong>날짜</strong></span>
-                    </div>
-                    <input id="date" type="text" class="form-control" aria-describedby="addon-wrapping">
-                </div>
                 <button id="addContract" type="button" class="btn btn-primary mx-auto d-block mt-2">계약서 등록</button>
             </div>
 
@@ -269,6 +273,7 @@
                         <button id="getContract" type="button" class="btn btn-primary mx-auto d-block">계약서 조회</button>
                         <hr>
                         <div id="parent" class="list-group">
+                            
                         </div>
                     </div>
                 </div>
