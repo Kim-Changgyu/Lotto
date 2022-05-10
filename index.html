@@ -25,8 +25,13 @@
             if (window.ethereum) {
                 window.web3 = new Web3(window.ethereum);
                 window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                var address = "0x49EC3787c81C4a4B94Ed4fBC7ECB7196C19f36d1";
+                var address = "0x302D7b27BF838B0C066A08Cee0dAF1892aD4Ff08";
                 var abi = [
+                    {
+                        "inputs": [],
+                        "stateMutability": "nonpayable",
+                        "type": "constructor"
+                    },
                     {
                         "inputs": [
                             {
@@ -52,17 +57,25 @@
                         ],
                         "name": "addContract",
                         "outputs": [],
-                        "stateMutability": "nonpayable",
+                        "stateMutability": "payable",
                         "type": "function"
                     },
                     {
                         "inputs": [],
-                        "stateMutability": "nonpayable",
-                        "type": "constructor"
+                        "name": "getBalance",
+                        "outputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                            }
+                        ],
+                        "stateMutability": "view",
+                        "type": "function"
                     },
                     {
                         "inputs": [],
-                        "name": "getBalance",
+                        "name": "getCommision",
                         "outputs": [
                             {
                                 "internalType": "uint256",
@@ -103,6 +116,19 @@
                     },
                     {
                         "inputs": [],
+                        "name": "getOwner",
+                        "outputs": [
+                            {
+                                "internalType": "address",
+                                "name": "",
+                                "type": "address"
+                            }
+                        ],
+                        "stateMutability": "view",
+                        "type": "function"
+                    },
+                    {
+                        "inputs": [],
                         "name": "owner",
                         "outputs": [
                             {
@@ -112,6 +138,13 @@
                             }
                         ],
                         "stateMutability": "view",
+                        "type": "function"
+                    },
+                    {
+                        "inputs": [],
+                        "name": "withdraw",
+                        "outputs": [],
+                        "stateMutability": "payable",
                         "type": "function"
                     }
                 ];
@@ -135,6 +168,12 @@
             btn = document.getElementById("addContract");
             btn.addEventListener("click", addContract);
 
+            btn = document.getElementById("getCommision");
+            btn.addEventListener("click", getCommision);
+
+            btn = document.getElementById("withdraw");
+            btn.addEventListener("click", withdraw);
+
             A = document.getElementById("A");
             B = document.getElementById("B");
             content = document.getElementById("content");
@@ -145,7 +184,18 @@
             if (contractInstance != null) {
                 try {
                     const value = await contractInstance.methods[this.id]().call();
-                    alert("현재 스마트 컨트랙트의 잔액은 " + value + "입니다.");
+                    alert("현재 스마트 컨트랙트의 잔액은 " + Web3.utils.fromWei(value, 'ether') + "ETH 입니다.");
+                } catch (e) {
+                    alert(e);
+                }
+            }
+        }
+        
+        async function getCommision() {
+            if (contractInstance != null) {
+                try {
+                    const value = await contractInstance.methods[this.id]().call();
+                    alert("보안 계약서의 등록 수수료는 " + Web3.utils.fromWei(value, 'ether') + "ETH 입니다.");
                 } catch (e) {
                     alert(e);
                 }
@@ -220,7 +270,9 @@
                     var now = new Date(+new Date() + 3240 * 10000).toISOString().replace("T", " ").replace(/\..*/, '');
                     let addressA = web3.utils.toChecksumAddress(A.value);
                     let addressB = web3.utils.toChecksumAddress(B.value);
-                    const value = await contractInstance.methods[this.id](addressA, addressB, raw_content, now).send({from:accounts[0]});
+
+                    const commision = await contractInstance.methods["getCommision"]().call();
+                    const value = await contractInstance.methods[this.id](addressA, addressB, raw_content, now).send({from:accounts[0], value:commision});
 
                     alert("계약서가 정상적으로 등록됐습니다.");
                     
@@ -233,6 +285,16 @@
             }
         }
 
+        async function withdraw() {
+            if (contractInstance != null) {
+                try {
+                    const value = await contractInstance.methods[this.id]().send({from: accounts[0]});
+                    alert("스마트 컨트랙트 소유주의 어드레스로 송금 됐습니다.");
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
     </script>
 </head>
 <body>
@@ -240,7 +302,9 @@
         <div class="jumbotron">
             <div>
                 <h1 class="display-4">보안 계약서
+                    <button id="getCommision" type="button" class="btn btn-primary">수수료 조회</button>
                     <button id="getBalance" type="button" class="btn btn-warning">스마트 컨트랙트 잔액 조회</button>
+                    <button id="withdraw" type="button" class="btn btn-dark">출금</button>
                 </h1>
                 <p class="lead">Team Name: 김창규 (20162347)</p>
                 <a class="btn btn-danger btn-lg" href="#" role="button">Youtube Demo Video</a>
